@@ -216,11 +216,8 @@ def test(args, device_id, pt, step):
     trainer.test(test_iter,step)
 
 
-def baseline(args, cal_lead=False, cal_oracle=False):
+def baseline(args, device_id, test_iter, cal_lead=False, cal_oracle=False,):
 
-    test_iter =data_loader.Dataloader(args, load_dataset(args, 'test', shuffle=False),
-                                  args.batch_size, device,
-                                  shuffle=False, is_test=True)
 
     trainer = build_trainer(args, device_id, None, None)
     #
@@ -279,7 +276,7 @@ if __name__ == '__main__':
 
 
     parser.add_argument("-encoder", default='classifier', type=str, choices=['classifier','transformer','rnn','baseline'])
-    parser.add_argument("-mode", default='train', type=str, choices=['train','validate','test'])
+    parser.add_argument("-mode", default='train', type=str, choices=['lead', 'oracle', 'train','validate','test'])
     parser.add_argument("-bert_data_path", default='../bert_data/cnndm')
     parser.add_argument("-model_path", default='../models/')
     parser.add_argument("-result_path", default='../results/cnndm')
@@ -334,16 +331,26 @@ if __name__ == '__main__':
     device = "cpu" if args.visible_gpus == '-1' else "cuda"
     device_id = 0 if device == "cuda" else -1
 
+    print(args)
     if(args.world_size>1):
+        print(args)
         multi_main(args)
     elif (args.mode == 'train'):
         train(args, device_id)
     elif (args.mode == 'validate'):
         wait_and_validate(args, device_id)
     elif (args.mode == 'lead'):
-        baseline(args, cal_lead=True)
+        print(args)
+        test_iter =data_loader.Dataloader(args, load_dataset(args, 'test', shuffle=False),
+                                  args.batch_size, device,
+                                  shuffle=False, is_test=True)
+
+        baseline(args, device_id, test_iter,  cal_lead=True)
     elif (args.mode == 'oracle'):
-        baseline(args, cal_oracle=True)
+        test_iter =data_loader.Dataloader(args, load_dataset(args, 'test', shuffle=False),
+                                  args.batch_size, device,
+                                  shuffle=False, is_test=True)
+        baseline(args, device_id,   test_iter,   cal_oracle=True)
     elif (args.mode == 'test'):
         cp = args.test_from
         try:

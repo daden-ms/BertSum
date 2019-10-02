@@ -153,12 +153,13 @@ class Dataloader(object):
 
 class DataIterator(object):
     def __init__(self, args, dataset,  batch_size,  device=None, is_test=False,
-                 shuffle=True):
+                 shuffle=True, sort=True):
         self.args = args
         self.batch_size, self.is_test, self.dataset = batch_size, is_test, dataset
         self.iterations = 0
         self.device = device
         self.shuffle = shuffle
+        self.sort = sort
 
         self.sort_key = lambda x: len(x[1])
 
@@ -213,8 +214,11 @@ class DataIterator(object):
         """ Create batches """
         data = self.data()
         for buffer in self.batch_buffer(data, self.batch_size * 50):
-
-            p_batch = sorted(buffer, key=lambda x: len(x[3]))
+            
+            if self.sort:
+                p_batch = sorted(buffer, key=lambda x: len(x[3]))
+            else:
+                p_batch = buffer
             p_batch = batch(p_batch, self.batch_size)
 
             p_batch = list(p_batch)
