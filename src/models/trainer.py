@@ -38,11 +38,12 @@ def build_trainer(args, device_id, model,
     n_gpu = args.world_size
 
     if device_id >= 0:
-        gpu_rank = int(args.gpu_ranks[device_id])
+        gpu_rank = int(args.gpu_ranks_map[device_id])
     else:
         gpu_rank = 0
         n_gpu = 0
-
+   
+    print('device_id %d' % device_id)
     print('gpu_rank %d' % gpu_rank)
 
     tensorboard_log_dir = args.model_path
@@ -367,7 +368,8 @@ class Trainer(object):
                         if ((not cal_oracle) and (not self.args.recall_eval) and len(_pred) == 3):
                             break
                             
-                    _pred = '<q>'.join(_pred)
+                    #_pred = '<q>'.join(_pred)
+                    _pred = ''.join(_pred)
                     if(self.args.recall_eval):
                         _pred = ' '.join(_pred.split()[:len(batch.tgt_str[i].split())])
 
