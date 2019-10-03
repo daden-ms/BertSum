@@ -301,7 +301,7 @@ class Trainer(object):
 
         return stats
 
-    def predict(self, test_iter, cal_lead=False, cal_oracle=False):
+    def predict(self, test_iter, sentence_seperator='<q>', cal_lead=False, cal_oracle=False):
         """ Validate model.
             valid_iter: validate data iterator
         Returns:
@@ -369,7 +369,7 @@ class Trainer(object):
                             break
                             
                     #_pred = '<q>'.join(_pred)
-                    _pred = ''.join(_pred)
+                    _pred = sentence_seperator.join(_pred)
                     if(self.args.recall_eval):
                         _pred = ' '.join(_pred.split()[:len(batch.tgt_str[i].split())])
 
