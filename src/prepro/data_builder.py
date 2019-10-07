@@ -149,28 +149,33 @@ class BertData():
         self.cls_vid = self.tokenizer.vocab['[CLS]']
         self.pad_vid = self.tokenizer.vocab['[PAD]']
 
-    def preprocess(self, src, tgt, oracle_ids):
+
+    def preprocess(self, src, tgt=None, oracle_ids=None):
 
         if (len(src) == 0):
             return None
 
         original_src_txt = [' '.join(s) for s in src]
 
-        labels = [0] * len(src)
-        for l in oracle_ids:
-            labels[l] = 1
+        labels = None
+        if oracle_ids is not None and tgt is not None:
+            labels = [0] * len(src)
+            for l in oracle_ids:
+                labels[l] = 1
 
         idxs = [i for i, s in enumerate(src) if (len(s) > self.args.min_src_ntokens)]
 
         src = [src[i][:self.args.max_src_ntokens] for i in idxs]
-        labels = [labels[i] for i in idxs]
         src = src[:self.args.max_nsents]
-        labels = labels[:self.args.max_nsents]
+        if labels:
+            labels = [labels[i] for i in idxs]
+            labels = labels[:self.args.max_nsents]
 
         if (len(src) < self.args.min_nsents):
             return None
-        if (len(labels) == 0):
-            return None
+        if labels:
+            if (len(labels) == 0):
+                return None
 
         src_txt = [' '.join(sent) for sent in src]
         # text = [' '.join(ex['src_txt'][i].split()[:self.args.max_src_ntokens]) for i in idxs]
@@ -190,9 +195,12 @@ class BertData():
             else:
                 segments_ids += s * [1]
         cls_ids = [i for i, t in enumerate(src_subtoken_idxs) if t == self.cls_vid]
-        labels = labels[:len(cls_ids)]
+        if labels:
+            labels = labels[:len(cls_ids)]
 
-        tgt_txt = '<q>'.join([' '.join(tt) for tt in tgt])
+        tgt_txt = None
+        if tgt:
+            tgt_txt = '<q>'.join([' '.join(tt) for tt in tgt])
         src_txt = [original_src_txt[i] for i in idxs]
         return src_subtoken_idxs, labels, segments_ids, cls_ids, src_txt, tgt_txt
 
