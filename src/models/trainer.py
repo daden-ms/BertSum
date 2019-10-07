@@ -331,7 +331,6 @@ class Trainer(object):
         with torch.no_grad():
             for batch in test_iter:
                 src = batch.src
-                labels = batch.labels
                 segs = batch.segs
                 clss = batch.clss
                 mask = batch.mask
@@ -353,6 +352,7 @@ class Trainer(object):
                 for i, idx in enumerate(selected_ids):
                     _pred = []
                     if(len(batch.src_str[i])==0):
+                        pred.append('')
                         continue
                     for j in selected_ids[i][:len(batch.src_str[i])]:
                         if(j>=len( batch.src_str[i])):
