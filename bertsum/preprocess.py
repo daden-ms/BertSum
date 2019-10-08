@@ -4,8 +4,8 @@
 import argparse
 import time
 
-from others.logging import init_logger
-from prepro import data_builder
+from bertsum.others.logging import init_logger
+from bertsum.prepro import data_builder
 
 
 def do_format_to_lines(args):

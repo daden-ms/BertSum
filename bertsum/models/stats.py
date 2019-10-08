@@ -4,7 +4,7 @@ from __future__ import division
 import sys
 import time
 
-from others.logging import logger
+from bersum.others.logging import logger
 
 
 class Statistics(object):
