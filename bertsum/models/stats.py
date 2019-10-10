@@ -4,7 +4,7 @@ from __future__ import division
 import sys
 import time
 
-from bersum.others.logging import logger
+from bertsum.others.logging import logger
 
 
 class Statistics(object):
@@ -52,7 +52,7 @@ class Statistics(object):
             our_stats(list([`Statistics`])): list of updated stats
         """
         from torch.distributed import get_rank
-        from distributed import all_gather_list
+        from bertsum.distributed import all_gather_list
 
         # Get a list of world_size lists with len(stat_list) Statistics objects
         all_stats = all_gather_list(stat_list, max_size=max_size)

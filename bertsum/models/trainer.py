@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from tensorboardX import SummaryWriter
 
-import bertsum.distributed
+import bertsum.distributed as distributed
 # import onmt
 from bertsum.models.reporter import ReportMgr
 from bertsum.models.stats import Statistics
@@ -142,7 +142,6 @@ class Trainer(object):
             reduce_counter = 0
             for i, batch in enumerate(train_iter):
                 if self.n_gpu == 0 or (i % self.n_gpu == self.gpu_rank):
-
                     true_batchs.append(batch)
                     normalization += batch.batch_size
                     accum += 1

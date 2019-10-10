@@ -4,8 +4,8 @@ from __future__ import print_function
 import time
 from datetime import datetime
 
-from models.stats import Statistics
-from others.logging import logger
+from bertsum.models.stats import Statistics
+from bertsum.others.logging import logger
 
 
 def build_report_manager(opt):
