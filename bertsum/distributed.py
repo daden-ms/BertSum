@@ -1,3 +1,6 @@
+"""
+Portions Copyright (c) Microsoft Corporation
+"""
 """ Pytorch Distributed utils
     This piece of code was heavily inspired by the equivalent of Fairseq-py
     https://github.com/pytorch/fairseq

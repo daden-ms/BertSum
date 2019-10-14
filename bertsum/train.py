@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 """
+Portions Copyright (c) Microsoft Corporation
+"""
+
+"""
     Main training workflow
 """
 from __future__ import division

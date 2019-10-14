@@ -1,3 +1,6 @@
+"""
+Portions Copyright (c) Microsoft Corporation
+"""
 #encoding=utf-8
 
 

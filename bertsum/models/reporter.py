@@ -1,3 +1,7 @@
+"""
+Portions Copyright (c) Microsoft Corporation
+"""
+
 """ Report manager utility """
 from __future__ import print_function
 

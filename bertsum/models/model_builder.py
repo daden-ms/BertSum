@@ -1,4 +1,6 @@
-
+"""
+Portions Copyright (c) Microsoft Corporation
+"""
 import torch
 import torch.nn as nn
 from pytorch_pretrained_bert import BertModel, BertConfig

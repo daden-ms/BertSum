@@ -1,3 +1,8 @@
+"""
+Portions Copyright (c) Microsoft Corporation
+"""
+
+
 import gc
 import glob
 import hashlib

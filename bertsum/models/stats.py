@@ -1,3 +1,6 @@
+"""
+Portions Copyright (c) Microsoft Corporation
+"""
 """ Statistics calculation utility """
 from __future__ import division
 

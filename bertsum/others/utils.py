@@ -1,3 +1,7 @@
+"""
+Portions Copyright (c) Microsoft Corporation
+"""
+
 import os
 import re
 import shutil

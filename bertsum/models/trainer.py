@@ -1,3 +1,6 @@
+"""
+Portions Copyright (c) Microsoft Corporation
+"""
 import os
 
 import numpy as np
