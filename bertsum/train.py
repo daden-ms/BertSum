@@ -1,13 +1,11 @@
 #!/usr/bin/env python
+from __future__ import division
 """
 Portions Copyright (c) Microsoft Corporation
 """
-
 """
     Main training workflow
 """
-from __future__ import division
-
 import argparse
 import glob
 import os

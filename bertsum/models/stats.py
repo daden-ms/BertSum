@@ -1,8 +1,8 @@
+from __future__ import division
 """
 Portions Copyright (c) Microsoft Corporation
 """
 """ Statistics calculation utility """
-from __future__ import division
 
 import sys
 import time
