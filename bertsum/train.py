@@ -14,7 +14,7 @@ import time
 import torch
 from pytorch_pretrained_bert import BertConfig
 
-import bertsum.distributed
+import bertsum.distributed as distributed
 from bertsum.models import data_loader, model_builder
 from bertsum.models.data_loader import load_dataset
 from bertsum.models.model_builder import Summarizer
@@ -248,7 +248,7 @@ def train(args, device_id):
 
     def train_iter_fct():
         return data_loader.Dataloader(args, load_dataset(args, 'train', shuffle=True), args.batch_size, device,
-                                                 shuffle=True, is_test=False)
+                                                 shuffle=True, is_test=True)
 
     model = Summarizer(args, device, load_pretrained_bert=True)
     if args.train_from != '':
@@ -325,6 +325,15 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     args.gpu_ranks = [int(i) for i in args.gpu_ranks.split(',')]
+    def __map_gpu_ranks(gpu_ranks):
+            #gpu_ranks_list=gpu_ranks.split(',')
+            gpu_ranks_list = gpu_ranks
+            print(gpu_ranks_list)
+            gpu_ranks_map = {}
+            for i, rank in enumerate(gpu_ranks_list):
+                gpu_ranks_map[int(rank)]=i
+            return gpu_ranks_map
+    args.gpu_ranks_map = __map_gpu_ranks(args.gpu_ranks)
     os.environ["CUDA_VISIBLE_DEVICES"] = args.visible_gpus
 
     init_logger(args.log_file)
