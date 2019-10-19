@@ -146,10 +146,10 @@ def hashhex(s):
     return h.hexdigest()
 
 
-class BertData():
-    def __init__(self, args):
+class TransformerData():
+    def __init__(self, args, tokenizer):
         self.args = args
-        self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
+        self.tokenizer = tokenizer #BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
         self.sep_vid = self.tokenizer.vocab['[SEP]']
         self.cls_vid = self.tokenizer.vocab['[CLS]']
         self.pad_vid = self.tokenizer.vocab['[PAD]']

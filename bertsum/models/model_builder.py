@@ -3,7 +3,8 @@ Portions Copyright (c) Microsoft Corporation
 """
 import torch
 import torch.nn as nn
-from pytorch_pretrained_bert import BertModel, BertConfig
+#from pytorch_pretrained_bert import BertModel, BertConfig
+from transformers import BertModel, BertConfig, PreTrainedModel,  PretrainedConfig
 from torch.nn.init import xavier_uniform_
 
 from bertsum.models.encoder import TransformerInterEncoder, Classifier, RNNEncoder
@@ -42,43 +43,46 @@ def build_optim(args, model, checkpoint):
     return optim
 
 
-class Bert(nn.Module):
-    def __init__(self, temp_dir, load_pretrained_bert, bert_config):
-        super(Bert, self).__init__()
-        if(load_pretrained_bert):
-            self.model = BertModel.from_pretrained("bert-base-uncased",
+class Transformer(nn.Module):
+    def __init__(self, temp_dir, model_class, pretrained_model_name, pretrained_config):
+        super(Transformer, self).__init__()
+        if(pretrained_model_name):
+            self.model = model_class.from_pretrained(pretrained_model_name,
                                                    cache_dir=temp_dir)
             #self.model = BertModel.from_pretrained('bert-base-uncased', cache_dir=temp_dir)
         else:
-            self.model = BertModel(bert_config)
+            self.model = model_class(pretrained_config)
 
     def forward(self, x, segs, mask):
-        encoded_layers, _ = self.model(x, segs, attention_mask =mask)
-        top_vec = encoded_layers[-1]
+        outputs = self.model(x, token_type_ids=segs, attention_mask =mask)
+        #print(outputs)
+        #print(len(outputs))
+        top_vec = outputs[0] 
+        
         return top_vec
 
 
 
 class Summarizer(nn.Module):
-    def __init__(self, args, device, load_pretrained_bert = False, bert_config = None):
+    def __init__(self, args, device, model_class, pretrained_model_name, pretrained_config = None):
         super(Summarizer, self).__init__()
         self.args = args
         self.device = device
-        self.bert = Bert(args.temp_dir, load_pretrained_bert, bert_config)
+        self.transformer = Transformer(args.temp_dir, model_class, pretrained_model_name, pretrained_config)
         if (args.encoder == 'classifier'):
-            self.encoder = Classifier(self.bert.model.config.hidden_size)
+            self.encoder = Classifier(self.transformer.model.config.hidden_size)
         elif(args.encoder=='transformer'):
-            self.encoder = TransformerInterEncoder(self.bert.model.config.hidden_size, args.ff_size, args.heads,
+            self.encoder = TransformerInterEncoder(self.transformer.model.config.hidden_size, args.ff_size, args.heads,
                                                    args.dropout, args.inter_layers)
         elif(args.encoder=='rnn'):
             self.encoder = RNNEncoder(bidirectional=True, num_layers=1,
-                                      input_size=self.bert.model.config.hidden_size, hidden_size=args.rnn_size,
+                                      input_size=self.transformer.model.config.hidden_size, hidden_size=args.rnn_size,
                                       dropout=args.dropout)
         elif (args.encoder == 'baseline'):
-            bert_config = BertConfig(self.bert.model.config.vocab_size, hidden_size=args.hidden_size,
+            bert_config = BertConfig(self.transformer.model.config.vocab_size, hidden_size=args.hidden_size,
                                      num_hidden_layers=6, num_attention_heads=8, intermediate_size=args.ff_size)
-            self.bert.model = BertModel(bert_config)
-            self.encoder = Classifier(self.bert.model.config.hidden_size)
+            self.transformer.model = BertModel(bert_config)
+            self.encoder = Classifier(self.transformer.model.config.hidden_size)
 
         if args.param_init != 0.0:
             for p in self.encoder.parameters():
@@ -94,7 +98,7 @@ class Summarizer(nn.Module):
 
     def forward(self, x, segs, clss, mask, mask_cls, sentence_range=None):
 
-        top_vec = self.bert(x, segs, mask)
+        top_vec = self.transformer(x, segs, mask)
         sents_vec = top_vec[torch.arange(top_vec.size(0)).unsqueeze(1), clss]
         sents_vec = sents_vec * mask_cls[:, :, None].float()
         sent_scores = self.encoder(sents_vec, mask_cls).squeeze(-1)
