@@ -54,7 +54,10 @@ class Transformer(nn.Module):
             self.model = model_class(pretrained_config)
 
     def forward(self, x, segs, mask):
-        outputs = self.model(x, token_type_ids=segs, attention_mask =mask)
+        if "DistilBertModel" in str(type(self.model)):
+            outputs = self.model(x, attention_mask =mask)
+        else:
+            outputs = self.model(x, token_type_ids=segs, attention_mask =mask)
         #print(outputs)
         #print(len(outputs))
         top_vec = outputs[0] 
