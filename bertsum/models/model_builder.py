@@ -67,11 +67,11 @@ class Transformer(nn.Module):
 
 
 class Summarizer(nn.Module):
-    def __init__(self, args, device, model_class, pretrained_model_name, pretrained_config = None):
+    def __init__(self, args, model_class, pretrained_model_name, pretrained_config = None, temp_dir="./"):
         super(Summarizer, self).__init__()
-        self.args = args
-        self.device = device
-        self.transformer = Transformer(args.temp_dir, model_class, pretrained_model_name, pretrained_config)
+        self.loss = torch.nn.BCELoss(reduction='none')
+        #self.device = device
+        self.transformer = Transformer(temp_dir, model_class, pretrained_model_name, pretrained_config)
         if (args.encoder == 'classifier'):
             self.encoder = Classifier(self.transformer.model.config.hidden_size)
         elif(args.encoder=='transformer'):
@@ -95,14 +95,21 @@ class Summarizer(nn.Module):
                 if p.dim() > 1:
                     xavier_uniform_(p)
 
-        self.to(device)
+        #self.to(device)
     def load_cp(self, pt):
         self.load_state_dict(pt['model'], strict=True)
 
-    def forward(self, x, segs, clss, mask, mask_cls, sentence_range=None):
+    def forward(self, x, segs, clss, mask, mask_cls, labels=None, sentence_range=None):
 
         top_vec = self.transformer(x, segs, mask)
         sents_vec = top_vec[torch.arange(top_vec.size(0)).unsqueeze(1), clss]
         sents_vec = sents_vec * mask_cls[:, :, None].float()
         sent_scores = self.encoder(sents_vec, mask_cls).squeeze(-1)
-        return sent_scores, mask_cls
+        if labels is not None:
+            loss = self.loss(sent_scores, labels.float())
+            loss = (loss*mask_cls.float()).sum()
+            sent_scores = sent_scores + mask_cls.float()
+            return loss, sent_scores, mask_cls
+        else:
+            sent_scores = sent_scores + mask_cls.float()
+            return sent_scores, mask_cls
