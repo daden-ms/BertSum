@@ -42,19 +42,46 @@ class Batch(object):
             mask_cls = ~(clss == -1)
             clss[clss == -1] = 0
 
-            setattr(self, 'clss', clss.to(device))
-            setattr(self, 'mask_cls', mask_cls.to(device))
-            setattr(self, 'src', src.to(device))
-            setattr(self, 'segs', segs.to(device))
-            setattr(self, 'mask', mask.to(device))
+            #setattr(self, 'clss', clss.to(device))
+            #setattr(self, 'mask_cls', mask_cls.to(device))
+            #setattr(self, 'src', src.to(device))
+            #setattr(self, 'segs', segs.to(device))
+            #setattr(self, 'mask', mask.to(device))
+
+            setattr(self, 'clss', clss)
+            setattr(self, 'mask_cls', mask_cls)
+            setattr(self, 'src', src)
+            setattr(self, 'segs', segs)
+            setattr(self, 'mask', mask)
+
             src_str = [x[-2] for x in data]
             setattr(self, 'src_str', src_str)
 
 
             if (is_test):
-                setattr(self, 'labels', labels.to(device))
+                #setattr(self, 'labels', labels.to(device))
+                setattr(self, 'labels', labels)
+
                 tgt_str = [x[-1] for x in data]
                 setattr(self, 'tgt_str', tgt_str)
+
+    def to(self, device):
+        src = self.src.to(device)
+        segs = self.segs.to(device)
+        clss = self.clss.to(device)
+        mask = self.mask.to(device)
+        mask_cls = self.mask_cls.to(device)
+
+        setattr(self, 'clss', clss)
+        setattr(self, 'mask_cls', mask_cls)
+        setattr(self, 'src', src)
+        setattr(self, 'segs', segs)
+        setattr(self, 'mask', mask)
+        if hasattr(self, 'labels'):
+            labels = self.labels.to(device)
+            setattr(self, 'labels', labels.to(device))
+
+        return self
 
     def __len__(self):
         return self.batch_size
