@@ -67,21 +67,21 @@ class Transformer(nn.Module):
 
 
 class Summarizer(nn.Module):
-    def __init__(self, args, model_class, pretrained_model_name, pretrained_config = None, temp_dir="./"):
+    def __init__(self, encoder, args, model_class, pretrained_model_name, pretrained_config = None, temp_dir="./"):
         super(Summarizer, self).__init__()
         self.loss = torch.nn.BCELoss(reduction='none')
         #self.device = device
         self.transformer = Transformer(temp_dir, model_class, pretrained_model_name, pretrained_config)
-        if (args.encoder == 'classifier'):
+        if (encoder == 'classifier'):
             self.encoder = Classifier(self.transformer.model.config.hidden_size)
-        elif(args.encoder=='transformer'):
+        elif(encoder=='transformer'):
             self.encoder = TransformerInterEncoder(self.transformer.model.config.hidden_size, args.ff_size, args.heads,
                                                    args.dropout, args.inter_layers)
-        elif(args.encoder=='rnn'):
+        elif(encoder=='rnn'):
             self.encoder = RNNEncoder(bidirectional=True, num_layers=1,
                                       input_size=self.transformer.model.config.hidden_size, hidden_size=args.rnn_size,
                                       dropout=args.dropout)
-        elif (args.encoder == 'baseline'):
+        elif (encoder == 'baseline'):
             bert_config = BertConfig(self.transformer.model.config.vocab_size, hidden_size=args.hidden_size,
                                      num_hidden_layers=6, num_attention_heads=8, intermediate_size=args.ff_size)
             self.transformer.model = BertModel(bert_config)
