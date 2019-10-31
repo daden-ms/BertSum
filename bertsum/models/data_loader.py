@@ -18,7 +18,7 @@ class Batch(object):
         rtn_data = [d + [pad_id] * (width - len(d)) for d in data]
         return rtn_data
 
-    def __init__(self, data=None, device=None,  is_test=False):
+    def __init__(self, data=None,   is_labeled=False):
         """Create a Batch from a list of examples."""
         if data is not None:
             self.batch_size = len(data)
@@ -30,7 +30,7 @@ class Batch(object):
         
             pre_labels = None
             labels = None
-            if is_test:
+            if is_labeled:
                 pre_labels = [x[1] for x in data]
                 labels = torch.tensor(self._pad(pre_labels, 0))
             segs = torch.tensor(self._pad(pre_segs, 0))
@@ -58,7 +58,7 @@ class Batch(object):
             setattr(self, 'src_str', src_str)
 
 
-            if (is_test):
+            if (is_labeled):
                 #setattr(self, 'labels', labels.to(device))
                 setattr(self, 'labels', labels)
 
@@ -149,14 +149,12 @@ def simple_batch_size_fn(new, count):
 
 
 class Dataloader(object):
-    def __init__(self, args, datasets,  batch_size,
-                 device, shuffle, is_test):
-        self.args = args
+    def __init__(self, datasets,  batch_size,
+                 shuffle, is_labeled):
         self.datasets = datasets
         self.batch_size = batch_size
-        self.device = device
         self.shuffle = shuffle
-        self.is_test = is_test
+        self.is_labeled = is_labeled
         self.cur_iter = self._next_dataset_iterator(datasets)
 
         assert self.cur_iter is not None
@@ -182,18 +180,17 @@ class Dataloader(object):
         except StopIteration:
             return None
 
-        return DataIterator(args = self.args,
+        return DataIterator(
             dataset=self.cur_dataset,  batch_size=self.batch_size,
-            device=self.device, shuffle=self.shuffle, is_test=self.is_test)
+            shuffle=self.shuffle, is_labeled=self.is_labeled)
 
 
 class DataIterator(object):
-    def __init__(self, args, dataset,  batch_size,  device=None, is_test=False,
+    def __init__(self,  dataset,  batch_size, is_labeled=False,
                  shuffle=True, sort=True):
-        self.args = args
-        self.batch_size, self.is_test, self.dataset = batch_size, is_test, dataset
+        self.batch_size, self.is_labeled, self.dataset = batch_size, is_labeled, dataset
         self.iterations = 0
-        self.device = device
+        #self.device = device
         self.shuffle = shuffle
         self.sort = sort
 
@@ -208,31 +205,31 @@ class DataIterator(object):
         return xs
 
 
-    def preprocess(self, ex, is_test):
+    def preprocess(self, ex, is_labeled):
         src = ex['src']
         if('labels' in ex):
             labels = ex['labels']
         else:
-            labels = ex['src_sent_labels']
+            labels = None #ex['src_sent_labels']
 
         segs = ex['segs']
-        if(not self.args.use_interval):
-            segs=[0]*len(segs)
+        #if(not self.args.use_interval):
+        #    segs=[0]*len(segs)
         clss = ex['clss']
         src_txt = ex['src_txt']
         tgt_txt = ex['tgt_txt']
 
-        if(is_test):
+        if(is_labeled):
             return src,labels,segs, clss, src_txt, tgt_txt
         else:
-            return src,labels,segs, clss, src_txt, tgt_txt
+            return src,labels,segs, clss, src_txt, None
 
     def batch_buffer(self, data, batch_size):
         minibatch, size_so_far = [], 0
         for ex in data:
             if(len(ex['src'])==0):
                 continue
-            ex = self.preprocess(ex, self.is_test)
+            ex = self.preprocess(ex, self.is_labeled)
             if(ex is None):
                 continue
             minibatch.append(ex)
@@ -272,7 +269,7 @@ class DataIterator(object):
                     continue
                 self.iterations += 1
                 self._iterations_this_epoch += 1
-                batch = Batch(minibatch, self.device, self.is_test)
+                batch = Batch(minibatch, self.is_labeled)
 
                 yield batch
             return

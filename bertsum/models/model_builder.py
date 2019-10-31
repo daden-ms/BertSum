@@ -11,23 +11,23 @@ from bertsum.models.encoder import TransformerInterEncoder, Classifier, RNNEncod
 from bertsum.models.optimizers import Optimizer
 
 
-def build_optim(args, model, checkpoint):
+def build_optim(optimization_method, lr, max_grad_norm, beta1, beta2, decay_method, warmup_steps, model, checkpoint):
     """ Build optimizer """
     saved_optimizer_state_dict = None
 
-    if args.train_from != '':
+    if checkpoint:
         optim = checkpoint['optim']
         saved_optimizer_state_dict = optim.optimizer.state_dict()
     else:
         optim = Optimizer(
-            args.optim, args.lr, args.max_grad_norm,
-            beta1=args.beta1, beta2=args.beta2,
-            decay_method=args.decay_method,
-            warmup_steps=args.warmup_steps)
+            optimization_method, lr, max_grad_norm,
+            beta1=beta1, beta2=beta2,
+            decay_method=decay_method,
+            warmup_steps=warmup_steps)
 
     optim.set_parameters(list(model.named_parameters()))
 
-    if args.train_from != '':
+    if checkpoint:
         optim.optimizer.load_state_dict(saved_optimizer_state_dict)
         if args.visible_gpus != '-1':
             for state in optim.optimizer.state.values():
